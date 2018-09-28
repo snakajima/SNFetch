@@ -78,7 +78,7 @@ class SNFetch:NSObject {
     let root:URL
     var session:URLSession!
     var extraHeaders = [String:String]()
-    init(root:URL) {
+    init(_ root:URL) {
         self.root = root
         let config = URLSessionConfiguration.default
         super.init()
