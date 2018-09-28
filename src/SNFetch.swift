@@ -65,7 +65,7 @@ class SNFetchError: NSObject, Error {
 
 class SNFetch:NSObject {
     private static let regex = try! NSRegularExpression(pattern: "^https?:", options: NSRegularExpression.Options())
-    private static func encode(_ string: String) -> String {
+    static func encode(_ string: String) -> String {
         // URL encoding: RFC 3986 http://www.ietf.org/rfc/rfc3986.txt
         var allowedCharacters = CharacterSet.alphanumerics
         allowedCharacters.insert(charactersIn: "-._~")
