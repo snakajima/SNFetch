@@ -152,6 +152,27 @@ class SNFetch:NSObject {
     func get(_ path:String, params:[String:String]? = nil, callback:@escaping (URL?, Error?)->(Void)) -> URLSessionDownloadTask? {
         return request("GET", path: path, params:params, callback:callback)
     }
+
+    @discardableResult
+    func get(_ path:String, params:[String:String]? = nil, callback:@escaping ([String:Any]?, Error?)->(Void)) -> URLSessionDownloadTask? {
+        return request("GET", path: path, params:params) { url, error in
+            if let error = error {
+                callback(nil, error)
+                return
+            }
+            
+            guard
+                let url = url,
+                let data = try? Data(contentsOf: url),
+                let json_ = try? JSONSerialization.jsonObject(with:data) as? [String:Any],
+                let json = json_
+                else {
+                    callback(nil, nil) // LAZY implementation
+                    return
+            }
+            callback(json, nil)
+        }
+    }
 }
 
 extension SNFetch: URLSessionDelegate, URLSessionTaskDelegate {
