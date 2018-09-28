@@ -8,6 +8,61 @@
 
 import Foundation
 
+class SNFetchError: NSObject, Error {
+    let res:HTTPURLResponse
+    init(res:HTTPURLResponse) {
+        self.res = res
+    }
+    
+    var localizedDescription:String {
+        // LAZY
+        return self.description
+    }
+    
+    override var description:String {
+        let message:String
+        switch(res.statusCode) {
+        case 400:
+            message = "Bad Request"
+        case 401:
+            message = "Unauthorized"
+        case 402:
+            message = "Payment Required"
+        case 403:
+            message = "Forbidden"
+        case 404:
+            message = "Not Found"
+        case 405:
+            message = "Method Not Allowed"
+        case 406:
+            message = "Proxy Authentication Required"
+        case 407:
+            message = "Request Timeout"
+        case 408:
+            message = "Request Timeout"
+        case 409:
+            message = "Conflict"
+        case 410:
+            message = "Gone"
+        case 411:
+            message = "Length Required"
+        case 500:
+            message = "Internal Server Error"
+        case 501:
+            message = "Not Implemented"
+        case 502:
+            message = "Bad Gateway"
+        case 503:
+            message = "Service Unavailable"
+        case 504:
+            message = "Gateway Timeout"
+        default:
+            message = "HTTP Error"
+        }
+        return "\(message) (\(res.statusCode))"
+    }
+}
+
 class SNFetch:NSObject {
     private static let regex = try! NSRegularExpression(pattern: "^https?:", options: NSRegularExpression.Options())
     private static func encode(_ string: String) -> String {
@@ -44,7 +99,7 @@ class SNFetch:NSObject {
                 if (200..<300).contains(hres.statusCode) {
                     callback(url, nil)
                 } else {
-                    let netError = SNNetError(res: hres)
+                    let netError = SNFetchError(res: hres)
                     print("SNNet ### http error \(netError)")
                     callback(url, netError)
                 }
