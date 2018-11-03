@@ -85,11 +85,11 @@ class SNFetch:NSObject {
         session = URLSession(configuration: config, delegate: self, delegateQueue: OperationQueue.main)
     }
     
-    private func sendRequest(_ request:URLRequest, callback:@escaping (URL?, Error?)->(Void)) -> URLSessionDownloadTask {
+    private func sendRequest(_ request:URLRequest, callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask {
         let task = session.downloadTask(with: request) { (url:URL?, res:URLResponse?, err:Error?) -> Void in
             if let error = err {
                 print("SNNet ### error=\(error)")
-                callback(url, err)
+                callback(url, res, err)
             } else {
                 guard let hres = res as? HTTPURLResponse else {
                     print("SNNet ### not HTTP Response=\(String(describing: res))")
@@ -97,11 +97,11 @@ class SNFetch:NSObject {
                     return
                 }
                 if (200..<300).contains(hres.statusCode) {
-                    callback(url, nil)
+                    callback(url, res, nil)
                 } else {
                     let netError = SNFetchError(res: hres)
                     print("SNNet ### http error \(netError)")
-                    callback(url, netError)
+                    callback(url, res, netError)
                 }
             }
         }
@@ -116,7 +116,7 @@ class SNFetch:NSObject {
         return root.appendingPathComponent(path)
     }
     
-    private func request(_ method:String, path:String, params:[String:String]? = nil, callback:@escaping (URL?, Error?)->(Void)) -> URLSessionDownloadTask? {
+    private func request(_ method:String, path:String, params:[String:String]? = nil, callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
         guard let url = url(from: path) else {
             print("SNNet Invalid URL:\(path)")
             return nil
@@ -149,15 +149,15 @@ class SNFetch:NSObject {
     }
     
     @discardableResult
-    func get(_ path:String, params:[String:String]? = nil, callback:@escaping (URL?, Error?)->(Void)) -> URLSessionDownloadTask? {
+    func get(_ path:String, params:[String:String]? = nil, callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
         return request("GET", path: path, params:params, callback:callback)
     }
 
     @discardableResult
-    func get(_ path:String, params:[String:String]? = nil, callback:@escaping ([String:Any]?, Error?)->(Void)) -> URLSessionDownloadTask? {
-        return request("GET", path: path, params:params) { url, error in
+    func get(_ path:String, params:[String:String]? = nil, callback:@escaping ([String:Any]?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
+        return request("GET", path: path, params:params) { url, res, error in
             if let error = error {
-                callback(nil, error)
+                callback(nil, res, error)
                 return
             }
             
@@ -167,10 +167,10 @@ class SNFetch:NSObject {
                 let json_ = try? JSONSerialization.jsonObject(with:data) as? [String:Any],
                 let json = json_
                 else {
-                    callback(nil, nil) // LAZY implementation
+                    callback(nil, nil, nil) // LAZY implementation
                     return
             }
-            callback(json, nil)
+            callback(json, res, nil)
         }
     }
 }
