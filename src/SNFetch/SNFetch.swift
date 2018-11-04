@@ -116,7 +116,7 @@ class SNFetch:NSObject {
         return root.appendingPathComponent(path)
     }
     
-    private func request(_ method:String, path:String, params:[String:String]? = nil, callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
+    private func request(_ method:String, path:String, params:[String:String]? = nil, headers:[String:String] = [String:String](), callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
         guard let url = url(from: path) else {
             print("SNNet Invalid URL:\(path)")
             return nil
@@ -142,6 +142,9 @@ class SNFetch:NSObject {
             request.setValue("\(data.count)", forHTTPHeaderField: "Content-Length")
             request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         }
+        for (key,value) in headers {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
         for (key,value) in extraHeaders {
             request.setValue(value, forHTTPHeaderField: key)
         }
@@ -149,13 +152,13 @@ class SNFetch:NSObject {
     }
     
     @discardableResult
-    func get(_ path:String, params:[String:String]? = nil, callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
-        return request("GET", path: path, params:params, callback:callback)
+    func get(_ path:String, params:[String:String]? = nil, headers:[String:String] = [String:String](),  callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
+        return request("GET", path: path, params:params, headers:headers, callback:callback)
     }
 
     @discardableResult
-    func get(_ path:String, params:[String:String]? = nil, callback:@escaping ([String:Any]?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
-        return request("GET", path: path, params:params) { url, res, error in
+    func get(_ path:String, params:[String:String]? = nil, headers:[String:String] = [String:String](),  callback:@escaping ([String:Any]?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
+        return request("GET", path: path, params:params, headers:headers) { url, res, error in
             if let error = error {
                 callback(nil, res, error)
                 return
