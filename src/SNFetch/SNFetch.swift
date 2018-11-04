@@ -184,14 +184,14 @@ class SNFetch:NSObject {
     }
     
     @discardableResult
-    func post(_ path:String, fileData:Data, params:[String:String], callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
+    func put(_ path:String, fileData:Data, params:[String:String], callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
         guard let url = url(from: path) else {
             print("SNNet Invalid URL:\(path)")
             // BUGBUG: callback with an error
             return nil
         }
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        request.httpMethod = "PUT"
         
         var body = ""
         for (name, value) in params {
