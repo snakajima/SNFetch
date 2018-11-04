@@ -184,7 +184,7 @@ class SNFetch:NSObject {
     }
     
     @discardableResult
-    func put(_ path:String, fileData:Data, params:[String:String], callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
+    func put(_ path:String, fileData:Data, type:String, params:[String:String] = [String:String](), headers:[String:String] = [String:String](), callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
         guard let url = url(from: path) else {
             print("SNNet Invalid URL:\(path)")
             // BUGBUG: callback with an error
@@ -193,6 +193,7 @@ class SNFetch:NSObject {
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         
+        /*
         var body = ""
         for (name, value) in params {
             body += "\r\n--\(SNFetch.boundary)\r\n"
@@ -211,7 +212,17 @@ class SNFetch:NSObject {
         request.httpBody = data
         request.setValue("\(data.count)", forHTTPHeaderField: "Content-Length")
         request.setValue("multipart/form-data; boundary=\(SNFetch.boundary)", forHTTPHeaderField: "Content-Type")
-        
+        */
+        request.httpBody = fileData
+        request.setValue("\(fileData.count)", forHTTPHeaderField: "Content-Length")
+        request.setValue(type, forHTTPHeaderField: "Content-Type")
+        for (key,value) in headers {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        for (key,value) in extraHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+
         return sendRequest(request, callback: callback)
     }
 }
