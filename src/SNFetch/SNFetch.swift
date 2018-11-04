@@ -157,6 +157,11 @@ class SNFetch:NSObject {
     }
 
     @discardableResult
+    func put(_ path:String, params:[String:String]? = nil, headers:[String:String] = [String:String](),  callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
+        return request("PUT", path: path, params:params, headers:headers, callback:callback)
+    }
+
+    @discardableResult
     func get(_ path:String, params:[String:String]? = nil, headers:[String:String] = [String:String](),  callback:@escaping ([String:Any]?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
         return request("GET", path: path, params:params, headers:headers) { url, res, error in
             if let error = error {
