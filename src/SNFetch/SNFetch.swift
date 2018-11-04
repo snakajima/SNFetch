@@ -64,6 +64,7 @@ class SNFetchError: NSObject, Error {
 }
 
 class SNFetch:NSObject {
+    static let boundary = "0xKhTmLbOuNdArY---This_Is_ThE_BoUnDaRyy---pqo"
     private static let regex = try! NSRegularExpression(pattern: "^https?:", options: NSRegularExpression.Options())
     static func encode(_ string: String) -> String {
         // URL encoding: RFC 3986 http://www.ietf.org/rfc/rfc3986.txt
@@ -180,6 +181,38 @@ class SNFetch:NSObject {
             }
             callback(json, res, nil)
         }
+    }
+    
+    @discardableResult
+    func post(_ path:String, fileData:Data, params:[String:String], callback:@escaping (URL?, URLResponse?, Error?)->(Void)) -> URLSessionDownloadTask? {
+        guard let url = url(from: path) else {
+            print("SNNet Invalid URL:\(path)")
+            // BUGBUG: callback with an error
+            return nil
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        var body = ""
+        for (name, value) in params {
+            body += "\r\n--\(SNFetch.boundary)\r\n"
+            body += "Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n"
+            body += value
+        }
+        body += "\r\n--\(SNFetch.boundary)\r\n"
+        body += "Content-Disposition: form-data; name=\"file\"\r\n\r\n"
+        
+        //print("SNNet FILE body:\(body)")
+        var data = body.data(using: String.Encoding.utf8)!
+        
+        data.append(fileData)
+        data.append("\r\n--\(SNFetch.boundary)--\r\n".data(using: String.Encoding.utf8)!)
+        
+        request.httpBody = data
+        request.setValue("\(data.count)", forHTTPHeaderField: "Content-Length")
+        request.setValue("multipart/form-data; boundary=\(SNFetch.boundary)", forHTTPHeaderField: "Content-Type")
+        
+        return sendRequest(request, callback: callback)
     }
 }
 
